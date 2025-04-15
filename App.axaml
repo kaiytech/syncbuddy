@@ -8,6 +8,18 @@
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
+             
+     <TrayIcon.Icons>
+         <TrayIcons>
+             <TrayIcon Icon="/Assets/avalonia-logo.ico" 
+                       ToolTipText="SyncBuddy" Clicked="TrayIcon_OnClicked">
+                 <TrayIcon.Menu>
+                     <NativeMenu Opening="TrayIcon_OnClicked">
+                     </NativeMenu>
+                 </TrayIcon.Menu>
+             </TrayIcon>
+         </TrayIcons>
+     </TrayIcon.Icons>
   
     <Application.Styles>
         <FluentTheme />

@@ -3,11 +3,21 @@
         xmlns:vm="using:SyncBuddy.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
+        Width="600" Height="600"
         x:Class="SyncBuddy.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="SyncBuddy">
+        Title="SyncBuddy"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="#0BFFFFFF"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaToDecorationsHint="True"
+        Topmost="True"
+        Opened="TopLevel_OnOpened"
+        Deactivated="WindowBase_OnDeactivated"
+        ShowInTaskbar="False"
+        >
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,

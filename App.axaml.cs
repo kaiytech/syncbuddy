@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
@@ -10,24 +11,20 @@ namespace SyncBuddy;
 
 public partial class App : Application
 {
+    public static MainWindow MainWindow;
+    
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        
+        MainWindow = new MainWindow();
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    private void TrayIcon_OnClicked(object? sender, EventArgs e)
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            // Line below is needed to remove Avalonia data validation.
-            // Without this line you will get duplicate validations from both Avalonia and CT
-            BindingPlugins.DataValidators.RemoveAt(0);
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainWindowViewModel(),
-            };
-        }
-
-        base.OnFrameworkInitializationCompleted();
+        if (MainWindow.IsVisible)
+            MainWindow.Hide();
+        else
+            MainWindow.Show();
     }
 }
