@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Avalonia.Controls;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using SyncBuddyLib;
@@ -68,12 +69,13 @@ public static class SyncManager
 
     public static async void Save()
     {
-        await _lock.WaitAsync();
-        
-        InitConfig();
-
+        if (Design.IsDesignMode)
+            return;
         try
         {
+            await _lock.WaitAsync();
+        
+            InitConfig();
             var items = Items.ToList().Select(SyncItemExtended.CastToBase);
             var json = JsonConvert.SerializeObject(items, SerializerSettings);
             await File.WriteAllTextAsync(AppSettingsFile, json);
@@ -86,12 +88,13 @@ public static class SyncManager
 
     public static async void Load()
     {
-        await _lock.WaitAsync();
-        
-        InitConfig();
-
+        if (Design.IsDesignMode)
+            return;
         try
         {
+            await _lock.WaitAsync();
+        
+            InitConfig();
             var json = await File.ReadAllTextAsync(AppSettingsFile);
             var items = JsonConvert.DeserializeObject<List<SyncItem>>(json);
             Items.Clear();

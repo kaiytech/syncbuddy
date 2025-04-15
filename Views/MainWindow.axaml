@@ -29,8 +29,17 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
     
-    <Grid RowDefinitions="Auto *">
-        <TextBlock Grid.Row="0" Margin="0 8" FontSize="28" FontWeight="Bold" Text="{Binding AppName}" HorizontalAlignment="Center" TextAlignment="Center" Width="400" VerticalAlignment="Center"/>
+    <Grid RowDefinitions="Auto * Auto">
+        <Grid ColumnDefinitions="* Auto" Margin="40 24 40 12">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <avalonia:MaterialIcon Kind="HeadSyncOutline" Width="30" Height="30" Margin="-6 0 0 0"></avalonia:MaterialIcon> <TextBlock FontSize="28" FontWeight="Bold" Text="{Binding AppName}" HorizontalAlignment="Left" TextAlignment="Left" Width="400" VerticalAlignment="Center"/>
+            </StackPanel>
+            <Button Grid.Column="1">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <avalonia:MaterialIcon Kind="PaperOutline"/> <TextBlock>Logs folder</TextBlock>
+                </StackPanel>
+            </Button>
+        </Grid>
         <Border Grid.Row="1"  BorderThickness="10" CornerRadius="8" Margin="16 0 16 16" Background="rgba(0,0,0,0.1)">
             <ScrollViewer>
                 <StackPanel Orientation="Vertical">
@@ -92,6 +101,15 @@
                 </StackPanel>
             </ScrollViewer>
         </Border>
+        
+        <Grid Grid.Row="2" ColumnDefinitions="* Auto" Margin="30 -10 0 20">
+            <Button Name="ActiveButton" Click="ActiveButton_OnClick" Classes="Outline" HorizontalContentAlignment="Left" Padding="0" HorizontalAlignment="Left" Background="Transparent" Foreground="WhiteSmoke" BorderThickness="0" BorderBrush="Transparent">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                    <avalonia:MaterialIcon Name="ActiveIcon" Foreground="GreenYellow" Kind="RadioButtonChecked"></avalonia:MaterialIcon>
+                    <TextBlock Name="ActiveText">Active</TextBlock>
+                </StackPanel>
+            </Button>
+        </Grid>
     </Grid>
     
 

@@ -7,6 +7,7 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Material.Icons;
 using SyncBuddy.ViewModels;
 using SyncBuddyLib;
 
@@ -24,6 +25,24 @@ public partial class MainWindow : Window
     {
         if (Design.IsDesignMode)
             DataContext = _viewModel;
+
+        _viewModel.PropertyChanged += (sender, args) =>
+        {
+            if (_viewModel.AppActive)
+            {
+                App.NotificationManager?.Show(new Notification("Syncing is now ACTIVE", "Expect things to happen", NotificationType.Information));
+                ActiveIcon.Kind = MaterialIconKind.RadioButtonChecked;
+                ActiveIcon.Foreground = new SolidColorBrush(Colors.GreenYellow);
+                ActiveText.Text = "Active";
+            }
+            else
+            {
+                App.NotificationManager?.Show(new Notification("Syncing is now INACTIVE", "Things won't happen anymore", NotificationType.Information));
+                ActiveIcon.Kind = MaterialIconKind.RadioButtonUnchecked;
+                ActiveIcon.Foreground = new SolidColorBrush(Colors.IndianRed);
+                ActiveText.Text = "Inactive";
+            }
+        };
         
         foreach (var item in _viewModel.SyncItems)
         {
@@ -85,5 +104,10 @@ public partial class MainWindow : Window
             return;
         
         SyncManager.Items.Add(newItem);
+    }
+
+    private void ActiveButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _viewModel.AppActive = !_viewModel.AppActive;
     }
 }
