@@ -41,6 +41,8 @@ public partial class SyncItemEditWindow : Window
         InitializeComponent();
         SetupValidators();
         Validate();
+
+        DeleteButton.IsVisible = SyncManager.Items.Contains(itemToEdit);
     }
 
     private void SetupValidators()
@@ -91,5 +93,11 @@ public partial class SyncItemEditWindow : Window
         // hack: I do a circle loop to update this again, because
         //       for some reason the property update notification
         //       does not make it through to this text box
+    }
+
+    private void DeleteButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        SyncManager.Items.Remove(_originalItem);
+        Close();
     }
 }

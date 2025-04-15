@@ -1,5 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.InteropServices.ComTypes;
+using System.Security.Cryptography;
 using Newtonsoft.Json;
 
 namespace SyncBuddyLib;
@@ -138,22 +141,183 @@ public class SyncItem
 
     public async void SyncNow()
     {
+        var stopwatch = Stopwatch.StartNew();
         CurrentLog.Clear();
         CurrentLog.Add("Syncing started...");
         SyncStatus = SyncStatus.Syncing;
-        await Task.Delay(800);
-        CurrentLog.Add("Syncing complete. Synced 3 items.");
-        CurrentLog.Add("Syncing complete. Synced 3 items.");
-        CurrentLog.Add("Syncing complete. Synced 3 items.");
-        CurrentLog.Add("Syncing complete. Synced 3 items.");
-        CurrentLog.Add("Syncing complete. Synced 3 items.");
-        CurrentLog.Add("Syncing complete. Synced 3 items.");
-        CurrentLog.Add("Syncing complete. Synced 3 items.");
-        CurrentLog.Add("Syncing complete. Synced 3 items.");
-        CurrentLog.Add("Syncing complete. Synced 3 items.");
-        CurrentLog.Add("Syncing complete. Synced 3 items.");
+
+        var removedCounter_files = 0;
+        var addedCounter_files = 0;
+        var updatedCounter_files = 0;
+        
+        var removedCounter_dirs = 0;
+        var addedCounter_dirs = 0;
+        
+        var sourceEntries = Directory.EnumerateFileSystemEntries(SourceDir, "*", SearchOption.AllDirectories)
+            .Select(p => Path.GetRelativePath(SourceDir, p))
+            .ToList();
+        
+        var targetEntries = Directory.EnumerateFileSystemEntries(TargetDir, "*", SearchOption.AllDirectories)
+            .Select(p => Path.GetRelativePath(TargetDir, p))
+            .ToList();
+        
+        // remove entries that do not exist in SOURCE but exist in TARGET:
+        var toRemove = targetEntries.Except(sourceEntries).ToList();
+        //   first all files, then directories:
+        toRemove = toRemove.OrderBy(_ => Directory.Exists(Path.Join(TargetDir, _))).ThenBy(_ => _).ToList();
+        foreach (var item in toRemove)
+        {
+            var path = Path.Join(TargetDir, item);
+            if (Directory.Exists(path))
+            {
+                try
+                {
+                    Directory.Delete(path);
+                    CurrentLog.Add($"- Removed directory '{item}' from the Target directory");
+                    removedCounter_dirs++;
+                } 
+                catch (Exception e)
+                {
+                    CurrentLog.Add($"! Failed to remove directory '{item}' to the Target directory => {e.Message}");
+                }
+            } 
+            else
+            {
+                try
+                {
+                    var fileSize = Utils.GetReadableFileSize(new FileInfo(path).Length);
+                    File.Delete(path);
+                    CurrentLog.Add($"- Removed file '{item}' from the Target directory ({fileSize})");
+                    removedCounter_files++;
+                }
+                catch (Exception e)
+                {
+                    CurrentLog.Add($"! Failed to remove file '{item}' from the Target directory => {e.Message}");
+                }
+            }
+        }
+
+        // add entries that do not exist in TARGET but exist in SOURCE
+        var toAdd = sourceEntries.Except(targetEntries).ToList();
+        //   first all directories, then files:
+        toAdd = toAdd.OrderBy(_ => File.Exists(Path.Join(SourceDir, _))).ThenBy(_ => _).ToList();
+        foreach (var item in toAdd)
+        {
+            var sourcePath = Path.Join(SourceDir, item);
+            var targetPath = Path.Join(TargetDir, item);
+            if (Directory.Exists(sourcePath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(targetPath);
+                    CurrentLog.Add($"+ Added directory '{item}' to the Target directory");
+                    addedCounter_dirs++;
+                }
+                catch (Exception e)
+                {
+                    CurrentLog.Add($"! Failed to add directory '{item}' to the Target directory => {e.Message}");
+                }
+            }
+            else
+            {
+                try
+                {
+                    var fileSize = Utils.GetReadableFileSize(new FileInfo(sourcePath).Length);
+                    await using var source = File.OpenRead(sourcePath);
+                    await using var destination = File.Create(targetPath);
+                    await source.CopyToAsync(destination);
+                    CurrentLog.Add($"+ Added file '{item}' to the Target directory ({fileSize})");
+                    addedCounter_files++;
+                }                 
+                catch (Exception e)
+                {
+                    CurrentLog.Add($"! Failed to add '{item}' to the Target directory => {e.Message}");
+                }
+            }
+        }
+
+        // verify files with the same name and directory
+        var toVerify = sourceEntries.Intersect(targetEntries)
+            .Where(_ => File.Exists(Path.Join(SourceDir, _)) && File.Exists(Path.Join(TargetDir, _))).ToList();
+        foreach (var item in toVerify)
+        {
+            var sourcePath = Path.Join(SourceDir, item);
+            var targetPath = Path.Join(TargetDir, item);
+            var sourceInfo = new FileInfo(sourcePath);
+            var targetInfo = new FileInfo(targetPath);
+
+            if (sourceInfo.Length != targetInfo.Length)
+            {
+                try
+                {
+                    await using var source = File.OpenRead(sourcePath);
+                    await using var destination = File.Create(targetPath);
+                    await source.CopyToAsync(destination);
+                }
+                catch (Exception e)
+                {
+                    CurrentLog.Add($"! Failed to replace '{item}' at the Target directory => {e.Message}");
+                }
+
+                CurrentLog.Add($"* Replaced '{item}' at Target directory (file size mismatch)");
+                updatedCounter_files++;
+                continue;
+            }
+
+            using var sha256 = SHA256.Create();
+            var sourceStream = File.OpenRead(sourcePath);
+            var targetStream = File.OpenRead(targetPath);
+            
+            var sourceHash = await sha256.ComputeHashAsync(sourceStream);
+            var targetHash = await sha256.ComputeHashAsync(targetStream);
+            
+            sourceStream.Close();
+            targetStream.Close();
+
+            if (!sourceHash.SequenceEqual(targetHash))
+            {
+                try
+                {
+                    await using var source = File.OpenRead(sourcePath);
+                    await using var destination = File.Create(targetPath);
+                    await source.CopyToAsync(destination);
+                    CurrentLog.Add($"* Replaced '{item}' at Target directory (SHA256 mismatch)");
+                    updatedCounter_files++;
+                }
+                catch (Exception e)
+                {
+                    CurrentLog.Add($"! Failed to replace '{item}' at the Target directory => {e.Message}");
+                }
+            }
+        }
+
+        if ((removedCounter_files + removedCounter_dirs + addedCounter_files + updatedCounter_files) > 0)
+        {
+            CurrentLog.Add($"Sync completed! Summary:");
+            if (removedCounter_files > 0)
+                CurrentLog.Add($"  Removed {removedCounter_files} file{(removedCounter_files > 1 ? "s" : "")}");
+            if (removedCounter_dirs > 0)
+                CurrentLog.Add($"  Removed {removedCounter_dirs} director{(removedCounter_dirs > 1 ? "ies" : "y")}");
+            if (addedCounter_files > 0)
+                CurrentLog.Add($"  Added {addedCounter_files} file{(addedCounter_files > 1 ? "s" : "")}");
+            if (addedCounter_dirs > 0)
+                CurrentLog.Add($"  Added {addedCounter_dirs} director{(addedCounter_dirs > 1 ? "ies" : "y")}");
+            if (updatedCounter_files > 0)
+                CurrentLog.Add($"  Updated {updatedCounter_files} file{(updatedCounter_files > 1 ? "s" : "")}");
+        }
+        else
+        {
+            CurrentLog.Add($"Sync completed! Nothing to update.");
+        }
+        
+        var elapsed = stopwatch.Elapsed;
+        CurrentLog.Add(
+            $"Took: {(elapsed.TotalMilliseconds > 1000 ? $"{elapsed.TotalSeconds:0.##} seconds" : $"{elapsed.TotalMilliseconds:0} ms")}");
+
         SyncStatus = SyncStatus.Synced;
         LastChecked = DateTime.Now;
+        
+        
     }
     
     public event EventHandler<SyncChangedEventArgs>? OnSyncStatusChanged;

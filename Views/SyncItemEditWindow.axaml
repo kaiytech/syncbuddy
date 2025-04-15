@@ -31,9 +31,16 @@
                 <TextBlock VerticalAlignment="Center">minutes.</TextBlock>
             </StackPanel>
         </CheckBox>
-        <Grid ColumnDefinitions="* Auto" Margin="0 16 0 0">
-            <TextBlock Foreground="Red" TextWrapping="Wrap" Margin="0 0 8 0"></TextBlock>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+        <Grid ColumnDefinitions="Auto * Auto" Margin="0 16 0 0">
+            <StackPanel Grid.Column="0">
+                <Button Classes="Outline" BorderBrush="IndianRed" Foreground="IndianRed" Name="DeleteButton" Click="DeleteButton_OnClick">
+                    <StackPanel Orientation="Horizontal">
+                        <avalonia:MaterialIcon Kind="Trash"/>
+                        <TextBlock>Delete</TextBlock>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
                 <Button Click="Button_OnClick">Cancel</Button>
                 <Button Name="SaveButton" Click="SaveButton_OnClick">Save</Button>
             </StackPanel>
