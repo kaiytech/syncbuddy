@@ -107,6 +107,11 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
     {
     }
 
+    public SyncItemExtended(SyncItem source) : this(source.Id, source.SourceDir, source.TargetDir)
+    {
+        
+    }
+
     public async void Command_Edit()
     {
         await App.MainWindow.OpenEditDialog(this);

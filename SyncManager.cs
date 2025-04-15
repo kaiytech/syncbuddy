@@ -93,10 +93,10 @@ public static class SyncManager
         try
         {
             var json = await File.ReadAllTextAsync(AppSettingsFile);
-            var items = JsonConvert.DeserializeObject<List<SyncItemExtended>>(json);
+            var items = JsonConvert.DeserializeObject<List<SyncItem>>(json);
             Items.Clear();
             foreach (var item in items)
-                Items.Add(item);
+                Items.Add(new SyncItemExtended(item));
             // do not assign new list to the observable list.
             // you WILL LOSE event bindings if you do so!!!
         }
