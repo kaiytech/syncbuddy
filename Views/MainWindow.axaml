@@ -3,6 +3,8 @@
         xmlns:vm="using:SyncBuddy.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+        xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
         Width="600" Height="600"
         x:Class="SyncBuddy.Views.MainWindow"
@@ -17,6 +19,8 @@
         Opened="TopLevel_OnOpened"
         Deactivated="WindowBase_OnDeactivated"
         ShowInTaskbar="False"
+        Foreground="WhiteSmoke"
+        CanResize="False"
         >
 
     <Design.DataContext>
@@ -24,7 +28,71 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    
+    <Grid RowDefinitions="Auto *">
+        <TextBlock Grid.Row="0" Margin="0 8" FontSize="28" FontWeight="Bold" Text="{Binding AppName}" HorizontalAlignment="Center" TextAlignment="Center" Width="400" VerticalAlignment="Center"/>
+        <Border Grid.Row="1"  BorderThickness="10" CornerRadius="8" Margin="16 0 16 16" Background="rgba(0,0,0,0.1)">
+            <ScrollViewer>
+                <StackPanel Orientation="Vertical">
+                    <ItemsControl ItemsSource="{Binding SyncItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <controls:Card Margin="6" MinHeight="70">
+                                    <Grid RowDefinitions="Auto *">
+                                        <Grid ColumnDefinitions="* Auto">
+                                            <StackPanel Grid.Column="0" Orientation="Vertical">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <avalonia:MaterialIcon Foreground="{Binding SyncingStatusIconColor}" Kind="{Binding SyncingIcon}"/>
+                                                    <TextBlock Margin="4 0 0 0" Text="{Binding StatusText}"/>
+                                                    <TextBlock IsVisible="{Binding ShowSmallText}" FontSize="10" VerticalAlignment="Center" Margin="4 0 0 0" Foreground="DarkGray">(done <Run Text="{Binding LastCheckedAgo}"/> ago, next check: <Run Text="{Binding NextCheck}"/>)</TextBlock>
+                                                </StackPanel>
+                                                <StackPanel Margin="0 6 0 0" Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock FontSize="14" FontWeight="Bold">Source: </TextBlock>
+                                                    <SelectableTextBlock VerticalAlignment="Center" FontFamily="Courier New" Text="{Binding SourceDirDisplay}"/>
+                                                    <Button Command="{Binding Command_CopySourceDir}" Foreground="DarkGray" Background="Transparent" Padding="0"><avalonia:MaterialIcon Kind="ContentCopy"></avalonia:MaterialIcon></Button>
+                                                    <Button Command="{Binding Command_OpenSourceDir}" Foreground="DarkGray" Background="Transparent" Padding="0"><avalonia:MaterialIcon Kind="FolderOpen"></avalonia:MaterialIcon></Button>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock FontSize="14" FontWeight="Bold">Target: </TextBlock>
+                                                    <SelectableTextBlock VerticalAlignment="Center" FontFamily="Courier New" Text="{Binding TargetDirDisplay}"/>
+                                                    <Button Command="{Binding Command_CopyTargetDir}" Foreground="DarkGray" Background="Transparent" Padding="0"><avalonia:MaterialIcon Kind="ContentCopy"></avalonia:MaterialIcon></Button>
+                                                    <Button Command="{Binding Command_OpenTargetDir}" Foreground="DarkGray" Background="Transparent" Padding="0"><avalonia:MaterialIcon Kind="FolderOpen"></avalonia:MaterialIcon></Button>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            
+                                            <StackPanel Width="110" Grid.Column="1" Orientation="Horizontal" Height="30" VerticalAlignment="Bottom" Spacing="10">
+                                                <Button Command="{Binding Command_SyncNow}"><avalonia:MaterialIcon Kind="Sync" ToolTip.Tip="Sync now"></avalonia:MaterialIcon></Button>
+                                                <Button Command="{Binding Command_Edit}"><avalonia:MaterialIcon Kind="Pencil" ToolTip.Tip="Edit"></avalonia:MaterialIcon></Button>
+                                            </StackPanel>
+                                            
+                                            
+                                        </Grid>
+                                        <Border IsVisible="{Binding LogExists}" Margin="0 8 0 0" Grid.Row="1" Grid.Column="0" Background="Black" Padding="4">
+                                            <ScrollViewer MaxHeight="100">
+                                                <StackPanel Orientation="Vertical">
+                                                    <ItemsControl ItemsSource="{Binding CurrentLog}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock TextWrapping="Wrap" FontFamily="Courier New" Text="{Binding .}"></TextBlock>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                    <Button Command="{Binding CopyLog}" IsVisible="{Binding SyncedAndLogExists}" Padding="0" Background="Transparent" HorizontalContentAlignment="Left" Foreground="WhiteSmoke" FontFamily="Courier New"><TextBlock TextDecorations="Underline">&gt; Copy log &lt; </TextBlock></Button>
+                                                </StackPanel>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </Grid>
+                                </controls:Card>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <controls:Card Margin="6" Height="70" Padding="0">
+                        <Button Name="NewEntryButton" Click="NewEntryButton_OnClick" Foreground="White" Background="Transparent"><avalonia:MaterialIcon Kind="Add"></avalonia:MaterialIcon></Button>
+                    </controls:Card>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+    
 
 </Window>

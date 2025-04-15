@@ -1,0 +1,42 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:SyncBuddy"
+        xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+        xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="315"
+        Width="400" Height="315" x:DataType="vm:SyncItemExtended"
+        x:Class="SyncBuddy.Views.SyncItemEditWindow" WindowStartupLocation="CenterOwner"
+        ExtendClientAreaToDecorationsHint="True"
+        ShowInTaskbar="False"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="#0BFFFFFF"
+        Title="SyncItemEditWindow" Topmost="True" ExtendClientAreaChromeHints="NoChrome" CanResize="False">
+    <StackPanel Orientation="Vertical" Margin="30" Spacing="10">
+        <TextBlock>ID: #<Run FontWeight="Bold" Text="{Binding Id}"/></TextBlock>
+        <Grid ColumnDefinitions="* Auto">
+            <TextBox Margin="0 0 10 0" Name="SourceDirTextBox" Padding="10" assists:TextFieldAssist.Label="Source directory" Text="{Binding SourceDir}"/>
+            <Button Click="ButtonBrowseSource_OnClick" Height="30" VerticalAlignment="Bottom" Grid.Column="1"><avalonia:MaterialIcon Kind="FolderOpen"/></Button>
+        </Grid>
+        <Grid ColumnDefinitions="* Auto">
+            <TextBox Margin="0 0 10 0" Name="TargetDirTextBox" assists:TextFieldAssist.Label="Target directory" Text="{Binding TargetDir}"/>
+            <Button Click="ButtonBrowseTarget_OnClick" Height="30" VerticalAlignment="Bottom" Grid.Column="1"><avalonia:MaterialIcon Kind="FolderOpen"/></Button>
+        </Grid>
+        <CheckBox IsChecked="{Binding Enabled}" Name="EnabledCheckBox">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock VerticalAlignment="Center">Perform sync every</TextBlock>
+                    <NumericUpDown IsEnabled="{Binding #EnabledCheckBox.IsEnabled}" Name="NumericPicker" Width="100" Height="40" Value="{Binding PeriodMinutes}"
+                           assists:TextFieldAssist.Label="Cool label" />
+                <TextBlock VerticalAlignment="Center">minutes.</TextBlock>
+            </StackPanel>
+        </CheckBox>
+        <Grid ColumnDefinitions="* Auto" Margin="0 16 0 0">
+            <TextBlock Foreground="Red" TextWrapping="Wrap" Margin="0 0 8 0"></TextBlock>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                <Button Click="Button_OnClick">Cancel</Button>
+                <Button Name="SaveButton" Click="SaveButton_OnClick">Save</Button>
+            </StackPanel>
+        </Grid>
+    </StackPanel>
+</Window>

@@ -2,7 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="SyncBuddy.App"
              xmlns:local="using:SyncBuddy"
-             RequestedThemeVariant="Default">
+             xmlns:themes="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             RequestedThemeVariant="Dark">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.DataTemplates>
@@ -20,8 +22,10 @@
              </TrayIcon>
          </TrayIcons>
      </TrayIcon.Icons>
-  
-    <Application.Styles>
-        <FluentTheme />
-    </Application.Styles>
+             
+             
+     <Application.Styles>
+         <avalonia:MaterialIconStyles />
+         <themes:MaterialTheme BaseTheme="Dark" PrimaryColor="Blue" SecondaryColor="Blue" />
+     </Application.Styles>
 </Application>
