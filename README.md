@@ -59,5 +59,28 @@ You got it.
     <img src="tests.png" alt="Tests">
 </div>
 
+
+### Settings
+* The desktop app saves its settings and logs to `C:\Users\<user>\AppData\SyncBuddy`
+
+### Example output
+```
+Syncing started...
+- Removed file 'm.mp4' from the Target directory (4.3 MB)
+- Removed file 'ml.mp4' from the Target directory (11.81 MB)
++ Added directory 'empty' to the Target directory
++ Added directory 'test' to the Target directory
++ Added file '1.txt' to the Target directory (3 B)
++ Added file '3.txt' to the Target directory (3 B)
++ Added file '6.txt' to the Target directory (0 B)
++ Added file 'samesize.txt' to the Target directory (10 B)
++ Added file 'test\2.txt' to the Target directory (4 B)
+Sync completed! Summary:
+  Removed 8 files
+  Added 5 files
+  Added 2 directories
+Took: 32 ms
+```
+
 # License 
 Distributed under the GNU Affero General Public License v3.0. See `LICENSE` for more information.
