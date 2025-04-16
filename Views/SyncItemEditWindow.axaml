@@ -23,7 +23,7 @@
             <TextBox Margin="0 0 10 0" Name="TargetDirTextBox" assists:TextFieldAssist.Label="Target directory" Text="{Binding TargetDir}"/>
             <Button Click="ButtonBrowseTarget_OnClick" Height="30" VerticalAlignment="Bottom" Grid.Column="1"><avalonia:MaterialIcon Kind="FolderOpen"/></Button>
         </Grid>
-        <CheckBox IsChecked="{Binding Enabled}" Name="EnabledCheckBox">
+        <CheckBox Name="EnabledCheckBox">
             <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock VerticalAlignment="Center">Perform sync every</TextBlock>
                     <NumericUpDown IsEnabled="{Binding #EnabledCheckBox.IsEnabled}" Name="NumericPicker" Width="100" Height="40" Value="{Binding PeriodMinutes}"

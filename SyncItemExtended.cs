@@ -44,18 +44,18 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
     [JsonIgnore]
     public ICommand Command_OpenTargetDir { get; set; }
     
-    public SyncItemExtended(int id, string sourceDir, string targetDir) : base(id, sourceDir, targetDir)
+    public SyncItemExtended(int id, string sourceDir, string targetDir, DateTime lastChecked, bool enabled, int periodMinutes) : base(id, sourceDir, targetDir, lastChecked, enabled, periodMinutes)
     {
         Command_SyncNow = new RelayCommand(SyncNow);
         Command_CopySourceDir = new RelayCommand(() => { CopyToClipboardAndNotify(SourceDir); });
         Command_CopyTargetDir = new RelayCommand(() => { CopyToClipboardAndNotify(TargetDir); });
         Command_OpenSourceDir = new RelayCommand(() =>
         {
-            Process.Start(new ProcessStartInfo("explorer.exe", SourceDir) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo("explorer.exe", Path.GetFullPath(SourceDir)) { UseShellExecute = true });
         });
         Command_OpenTargetDir = new RelayCommand(() =>
         {
-            Process.Start(new ProcessStartInfo("explorer.exe", TargetDir) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo("explorer.exe", Path.GetFullPath(TargetDir)) { UseShellExecute = true });
         });
         
         OnSyncStatusChanged += (sender, args) =>
@@ -75,6 +75,12 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
                 Validate();
             }
 
+            if (args.PropertyName is nameof(Enabled))
+            {
+                OnPropertyChanged(nameof(SyncStatus));
+                UpdateStatus();
+            }
+
             if (args.PropertyName is nameof(CurrentLog))
             {
                 if (CurrentLog.Count > 0 && SyncStatus is SyncStatus.Synced or SyncStatus.Error)
@@ -86,8 +92,8 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
             }
             
             // make sure we're not saving when editing temporary items :)
-            if (SyncManager.Items.Contains(this))
-                SyncManager.Save();
+            if (SyncApp.Items.Contains(this))
+                SyncApp.Save();
         };
 
         UpdateStatus();
@@ -103,13 +109,12 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
         
     }
 
-    public SyncItemExtended(SyncItemExtended source) : this(source.Id, source.SourceDir, source.TargetDir)
+    public SyncItemExtended(SyncItemExtended source) : this(source.Id, source.SourceDir, source.TargetDir, source.LastChecked, source.Enabled, source.PeriodMinutes)
     {
     }
 
-    public SyncItemExtended(SyncItem source) : this(source.Id, source.SourceDir, source.TargetDir)
+    public SyncItemExtended(SyncItem source) : this(source.Id, source.SourceDir, source.TargetDir, source.LastChecked, source.Enabled, source.PeriodMinutes)
     {
-        
     }
 
     public async void Command_Edit()
@@ -159,7 +164,7 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
             diff.TotalDays < 1 ? $"{(int)diff.TotalHours} hour{((int)diff.TotalMinutes == 1 ? "" : "s")}" :
             "more than a day";
         
-        NextCheck = (LastChecked + TimeSpan.FromMinutes(PeriodMinutes)).ToString("HH:mm");
+        NextCheck = (LastChecked + TimeSpan.FromMinutes(PeriodMinutes)).ToString("HH:mm:ss");
     }
     
     #endregion
@@ -199,6 +204,9 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
             _ => throw new ArgumentOutOfRangeException()
         };
 
+        if (!Enabled)
+            SyncingIcon = MaterialIconKind.Stop;
+
         StatusText = SyncStatus switch
         {
             SyncStatus.Idle => $"Not synced yet",
@@ -209,7 +217,10 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
             _ => throw new ArgumentOutOfRangeException()
         };
         
-        ShowSmallText = SyncStatus == SyncStatus.Synced;
+        if (!Enabled)
+            StatusText = "Disabled";
+        
+        ShowSmallText = SyncStatus is SyncStatus.Synced or SyncStatus.Idle;
 
         SyncingStatusIconColor = SyncStatus switch
         {
@@ -220,6 +231,9 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
             SyncStatus.Stopped => new SolidColorBrush(Colors.Gray),
             _ => throw new ArgumentOutOfRangeException()
         };
+
+        if (!Enabled)
+            SyncingStatusIconColor = new SolidColorBrush(Colors.Gray);
     }
 
     [JsonIgnore]
@@ -423,4 +437,6 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
     }
 
     #endregion
+
+    protected override bool IsMasterEnabled => SyncApp.IsActive;
 }

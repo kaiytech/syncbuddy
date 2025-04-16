@@ -12,12 +12,29 @@ using SyncBuddyLib;
 
 namespace SyncBuddy;
 
-public static class SyncManager
+public static class SyncApp
 {
+    private static bool _isActive = true;
+
+    public static bool IsActive
+    {
+        get
+        {
+            if (Design.IsDesignMode)
+                return false;
+            return _isActive;
+        }
+        set
+        {
+            _isActive = value;
+        }
+    }
+
     public static string AppSettingsDir =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SyncBuddy");
 
-    public static string AppSettingsFile => Path.Combine(AppSettingsDir, "syncs.json");
+    public static string AppSyncsFile => Path.Combine(AppSettingsDir, "syncs.json");
+    public static string AppSettingsFile => Path.Combine(AppSettingsDir, "settings.json");
 
     private static JsonSerializerSettings SerializerSettings
     {
@@ -63,8 +80,22 @@ public static class SyncManager
         if (!Directory.Exists(AppSettingsDir))
             Directory.CreateDirectory(AppSettingsDir);
 
+        if (!File.Exists(AppSyncsFile))
+            File.WriteAllText(AppSyncsFile, "[]");
+        
         if (!File.Exists(AppSettingsFile))
-            File.WriteAllText(AppSettingsFile, "[]");
+            File.WriteAllText(AppSettingsFile, JsonConvert.SerializeObject(new AppSettings() {AppActive = false}));
+    }
+
+    public static void UpdateConfig(bool appActive)
+    {
+        File.WriteAllText(AppSettingsFile, JsonConvert.SerializeObject(new AppSettings() { AppActive = appActive }));
+    }
+
+    public static bool ReadConfig()
+    { 
+        InitConfig();
+        return JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText(AppSettingsFile)) is { AppActive: true };
     }
 
     public static async void Save()
@@ -77,8 +108,8 @@ public static class SyncManager
         
             InitConfig();
             var items = Items.ToList().Select(SyncItemExtended.CastToBase);
-            var json = JsonConvert.SerializeObject(items, SerializerSettings);
-            await File.WriteAllTextAsync(AppSettingsFile, json);
+            var json = JsonConvert.SerializeObject(items);
+            await File.WriteAllTextAsync(AppSyncsFile, json);
         }
         finally
         {
@@ -95,7 +126,7 @@ public static class SyncManager
             await _lock.WaitAsync();
         
             InitConfig();
-            var json = await File.ReadAllTextAsync(AppSettingsFile);
+            var json = await File.ReadAllTextAsync(AppSyncsFile);
             var items = JsonConvert.DeserializeObject<List<SyncItem>>(json);
             Items.Clear();
             foreach (var item in items)

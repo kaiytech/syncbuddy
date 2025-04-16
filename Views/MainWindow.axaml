@@ -34,7 +34,7 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <avalonia:MaterialIcon Kind="HeadSyncOutline" Width="30" Height="30" Margin="-6 0 0 0"></avalonia:MaterialIcon> <TextBlock FontSize="28" FontWeight="Bold" Text="{Binding AppName}" HorizontalAlignment="Left" TextAlignment="Left" Width="400" VerticalAlignment="Center"/>
             </StackPanel>
-            <Button Grid.Column="1">
+            <Button Click="Button_OnClick" Grid.Column="1">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <avalonia:MaterialIcon Kind="PaperOutline"/> <TextBlock>Logs folder</TextBlock>
                 </StackPanel>

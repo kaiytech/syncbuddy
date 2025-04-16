@@ -16,7 +16,7 @@ public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
     
     public string AppName => "SyncBuddy";
 
-    public ObservableCollection<SyncItemExtended> SyncItems => SyncManager.Items;
+    public ObservableCollection<SyncItemExtended> SyncItems => SyncApp.Items;
     public void CallChanged()
     {
         OnPropertyChanged(nameof(SyncItems));

@@ -19,7 +19,7 @@ public partial class SyncItemEditWindow : Window
     
     public SyncItemEditWindow()
     { 
-        _itemCopy = new SyncItemExtended(0, "D:/TEST/FolderA", "D:/TEST/FolderB");
+        _itemCopy = new SyncItemExtended(0, "D:/TEST/FolderA", "D:/TEST/FolderB", DateTime.Now, false, 2);
         if (Design.IsDesignMode)
             DataContext = _itemCopy;
         
@@ -42,7 +42,8 @@ public partial class SyncItemEditWindow : Window
         SetupValidators();
         Validate();
 
-        DeleteButton.IsVisible = SyncManager.Items.Contains(itemToEdit);
+        DeleteButton.IsVisible = SyncApp.Items.Contains(itemToEdit);
+        EnabledCheckBox.IsChecked = _originalItem.Enabled;
     }
 
     private void SetupValidators()
@@ -67,8 +68,8 @@ public partial class SyncItemEditWindow : Window
     {
         _originalItem.SourceDir = _itemCopy.SourceDir;
         _originalItem.TargetDir = _itemCopy.TargetDir;
-        _originalItem.PeriodMinutes = _itemCopy.PeriodMinutes;
-        _originalItem.Enabled = _itemCopy.Enabled;
+        _originalItem.PeriodMinutes = Convert.ToInt32(NumericPicker.Value);
+        _originalItem.Enabled = EnabledCheckBox.IsChecked.Value;
         Close();
     }
 
@@ -97,7 +98,7 @@ public partial class SyncItemEditWindow : Window
 
     private void DeleteButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        SyncManager.Items.Remove(_originalItem);
+        SyncApp.Items.Remove(_originalItem);
         Close();
     }
 }

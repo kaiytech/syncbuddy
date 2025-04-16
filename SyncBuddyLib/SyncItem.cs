@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace SyncBuddyLib;
 
 [JsonObject]
-public class SyncItem
+public class SyncItem : IDisposable
 {
     public static bool AreDirectoriesIndependent(string sourceDir, string targetDir)
     {
@@ -27,18 +27,20 @@ public class SyncItem
         
     }
     
-    public SyncItem(int id, string sourceDir, string targetDir)
+    public SyncItem(int id, string sourceDir, string targetDir, DateTime lastChecked, bool enabled, int periodMinutes)
     {
         Id = id;
         SourceDir = sourceDir;
         TargetDir = targetDir;
-        LastChecked = DateTime.Now;
+        LastChecked = lastChecked;
+        _enabled = enabled;
+        PeriodMinutes = periodMinutes;
         SyncStatus = SyncStatus.Idle;
         CurrentLog.CollectionChanged += (sender, args) => 
             OnAnyPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentLog)));
     }
 
-    public SyncItem(SyncItem source) : this(source.Id, source.SourceDir, source._targetDir)
+    public SyncItem(SyncItem source) : this(source.Id, source.SourceDir, source._targetDir, source.LastChecked, source.Enabled, source.PeriodMinutes)
     {
         LastChecked = source.LastChecked;
         SyncStatus = source.SyncStatus;
@@ -81,13 +83,12 @@ public class SyncItem
             }
         }
     }
-
-
+    
     [JsonProperty("is_enabled")]
-    private bool _enabled = true;
-
+    private bool _enabled;
+    
     [JsonIgnore]
-    public bool Enabled
+    public virtual bool Enabled
     {
         get => _enabled;
         set
@@ -136,11 +137,15 @@ public class SyncItem
         }
     }
 
-
-
-
-    public async void SyncNow()
+    public void SyncNow()
     {
+        _forceSync = true;
+        SyncStatus = SyncStatus.Idle;
+    }
+    
+    public async Task Sync()
+    {
+        var errored = false;
         var stopwatch = Stopwatch.StartNew();
         CurrentLog.Clear();
         CurrentLog.Add("Syncing started...");
@@ -179,6 +184,7 @@ public class SyncItem
                 catch (Exception e)
                 {
                     CurrentLog.Add($"! Failed to remove directory '{item}' to the Target directory => {e.Message}");
+                    errored = true;
                 }
             } 
             else
@@ -193,6 +199,7 @@ public class SyncItem
                 catch (Exception e)
                 {
                     CurrentLog.Add($"! Failed to remove file '{item}' from the Target directory => {e.Message}");
+                    errored = true;
                 }
             }
         }
@@ -216,6 +223,7 @@ public class SyncItem
                 catch (Exception e)
                 {
                     CurrentLog.Add($"! Failed to add directory '{item}' to the Target directory => {e.Message}");
+                    errored = true;
                 }
             }
             else
@@ -232,6 +240,7 @@ public class SyncItem
                 catch (Exception e)
                 {
                     CurrentLog.Add($"! Failed to add '{item}' to the Target directory => {e.Message}");
+                    errored = true;
                 }
             }
         }
@@ -253,71 +262,88 @@ public class SyncItem
                     await using var source = File.OpenRead(sourcePath);
                     await using var destination = File.Create(targetPath);
                     await source.CopyToAsync(destination);
-                }
-                catch (Exception e)
-                {
-                    CurrentLog.Add($"! Failed to replace '{item}' at the Target directory => {e.Message}");
-                }
-
-                CurrentLog.Add($"* Replaced '{item}' at Target directory (file size mismatch)");
-                updatedCounter_files++;
-                continue;
-            }
-
-            using var sha256 = SHA256.Create();
-            var sourceStream = File.OpenRead(sourcePath);
-            var targetStream = File.OpenRead(targetPath);
-            
-            var sourceHash = await sha256.ComputeHashAsync(sourceStream);
-            var targetHash = await sha256.ComputeHashAsync(targetStream);
-            
-            sourceStream.Close();
-            targetStream.Close();
-
-            if (!sourceHash.SequenceEqual(targetHash))
-            {
-                try
-                {
-                    await using var source = File.OpenRead(sourcePath);
-                    await using var destination = File.Create(targetPath);
-                    await source.CopyToAsync(destination);
-                    CurrentLog.Add($"* Replaced '{item}' at Target directory (SHA256 mismatch)");
+                    CurrentLog.Add($"* Replaced '{item}' at Target directory (file size mismatch)");
                     updatedCounter_files++;
                 }
                 catch (Exception e)
                 {
                     CurrentLog.Add($"! Failed to replace '{item}' at the Target directory => {e.Message}");
+                    errored = true;
                 }
+                
+                continue;
+            }
+
+            try
+            {
+
+                using var sha256 = SHA256.Create();
+                var sourceStream = File.OpenRead(sourcePath);
+                var targetStream = File.OpenRead(targetPath);
+
+                var sourceHash = await sha256.ComputeHashAsync(sourceStream);
+                var targetHash = await sha256.ComputeHashAsync(targetStream);
+
+                sourceStream.Close();
+                targetStream.Close();
+
+                if (!sourceHash.SequenceEqual(targetHash))
+                {
+                    try
+                    {
+                        await using var source = File.OpenRead(sourcePath);
+                        await using var destination = File.Create(targetPath);
+                        await source.CopyToAsync(destination);
+                        CurrentLog.Add($"* Replaced '{item}' at Target directory (SHA256 mismatch)");
+                        updatedCounter_files++;
+                    }
+                    catch (Exception e)
+                    {
+                        CurrentLog.Add($"! Failed to replace '{item}' at the Target directory => {e.Message}");
+                        errored = true;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                CurrentLog.Add($"! Failed to do SHA256 for '{item}' => {e.Message}");
+                errored = true;
             }
         }
 
-        if ((removedCounter_files + removedCounter_dirs + addedCounter_files + updatedCounter_files) > 0)
+        if (errored)
         {
-            CurrentLog.Add($"Sync completed! Summary:");
-            if (removedCounter_files > 0)
-                CurrentLog.Add($"  Removed {removedCounter_files} file{(removedCounter_files > 1 ? "s" : "")}");
-            if (removedCounter_dirs > 0)
-                CurrentLog.Add($"  Removed {removedCounter_dirs} director{(removedCounter_dirs > 1 ? "ies" : "y")}");
-            if (addedCounter_files > 0)
-                CurrentLog.Add($"  Added {addedCounter_files} file{(addedCounter_files > 1 ? "s" : "")}");
-            if (addedCounter_dirs > 0)
-                CurrentLog.Add($"  Added {addedCounter_dirs} director{(addedCounter_dirs > 1 ? "ies" : "y")}");
-            if (updatedCounter_files > 0)
-                CurrentLog.Add($"  Updated {updatedCounter_files} file{(updatedCounter_files > 1 ? "s" : "")}");
+            CurrentLog.Add("Sync error! =( Check above log for details.");
         }
         else
         {
-            CurrentLog.Add($"Sync completed! Nothing to update.");
+            if ((removedCounter_files + removedCounter_dirs + addedCounter_files + updatedCounter_files) > 0)
+            {
+                CurrentLog.Add($"Sync completed! Summary:");
+                if (removedCounter_files > 0)
+                    CurrentLog.Add($"  Removed {removedCounter_files} file{(removedCounter_files > 1 ? "s" : "")}");
+                if (removedCounter_dirs > 0)
+                    CurrentLog.Add(
+                        $"  Removed {removedCounter_dirs} director{(removedCounter_dirs > 1 ? "ies" : "y")}");
+                if (addedCounter_files > 0)
+                    CurrentLog.Add($"  Added {addedCounter_files} file{(addedCounter_files > 1 ? "s" : "")}");
+                if (addedCounter_dirs > 0)
+                    CurrentLog.Add($"  Added {addedCounter_dirs} director{(addedCounter_dirs > 1 ? "ies" : "y")}");
+                if (updatedCounter_files > 0)
+                    CurrentLog.Add($"  Updated {updatedCounter_files} file{(updatedCounter_files > 1 ? "s" : "")}");
+            }
+            else
+            {
+                CurrentLog.Add($"Sync completed! Nothing to update.");
+            }
         }
-        
+
         var elapsed = stopwatch.Elapsed;
         CurrentLog.Add(
             $"Took: {(elapsed.TotalMilliseconds > 1000 ? $"{elapsed.TotalSeconds:0.##} seconds" : $"{elapsed.TotalMilliseconds:0} ms")}");
 
-        SyncStatus = SyncStatus.Synced;
+        SyncStatus = errored ? SyncStatus.Error : SyncStatus.Synced;
         LastChecked = DateTime.Now;
-        
-        
     }
     
     public event EventHandler<SyncChangedEventArgs>? OnSyncStatusChanged;
@@ -345,4 +371,38 @@ public class SyncItem
 
     [JsonIgnore]
     public ObservableCollection<string> CurrentLog { get; set; } = new();
+
+    [JsonIgnore] private CancellationTokenSource? _cancellationTokenSource = null;
+
+    [JsonIgnore] private bool _forceSync = false;
+
+    [JsonIgnore] protected virtual bool IsMasterEnabled => true;
+
+    public async Task PeriodicCheck(CancellationTokenSource cts)
+    {
+        _cancellationTokenSource = cts;
+        
+        var token = cts.Token;
+        
+        while (!token.IsCancellationRequested)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1), token);
+            if (!IsMasterEnabled && !_forceSync)
+                continue;
+            if ((Enabled && LastChecked.AddMinutes(PeriodMinutes) < DateTime.Now) || _forceSync)
+            {
+                _forceSync = false;
+                await Sync();
+            }
+        }
+        
+        await cts?.CancelAsync()!;
+        cts?.Dispose();
+    }
+    
+    public void Dispose()
+    {
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+    }
 }

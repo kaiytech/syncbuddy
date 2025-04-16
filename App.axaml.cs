@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
@@ -19,10 +20,22 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        
-        SyncManager.Load();
 
-        SyncManager.Items.CollectionChanged += (sender, args) => SyncManager.Save();
+        SyncApp.IsActive = SyncApp.ReadConfig();
+        
+        SyncApp.Load();
+
+        SyncApp.Items.CollectionChanged += (sender, args) => SyncApp.Save();
+        SyncApp.Items.CollectionChanged += (sender, args) =>
+        {
+            if (args.NewItems != null && args.NewItems.Count > 0)
+                foreach (SyncItemExtended item in args.NewItems)
+                    item.PeriodicCheck(new CancellationTokenSource()); // don't await
+
+            if (args.OldItems != null && args.OldItems.Count > 0)
+                foreach (SyncItemExtended item in args.OldItems)
+                    item.Dispose();
+        };
         
         MainWindow = new MainWindow();
         
