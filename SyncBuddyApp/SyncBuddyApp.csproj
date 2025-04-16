@@ -11,7 +11,6 @@
     <ItemGroup>
         <Folder Include="Models\"/>
         <AvaloniaResource Include="Assets\**"/>
-        <AvaloniaResource Remove="SyncBuddyLib\**" />
     </ItemGroup>
 
     <ItemGroup>
@@ -24,33 +23,10 @@
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
         <PackageReference Include="Material.Avalonia" Version="3.10.1" />
         <PackageReference Include="Material.Icons.Avalonia" Version="2.3.1" />
+        <PackageReference Include="NLog" Version="5.4.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <AvaloniaXaml Remove="SyncBuddyLib\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Remove="SyncBuddyLib\**" />
-      <Compile Update="Views\SyncItemEditWindow.axaml.cs">
-        <DependentUpon>SyncItemEditWindow.axaml</DependentUpon>
-        <SubType>Code</SubType>
-      </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-      <EmbeddedResource Remove="SyncBuddyLib\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <AdditionalFiles Remove="SyncBuddyLib\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="SyncBuddyLib\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="SyncBuddyLib\SyncBuddyLib.csproj" />
+      <ProjectReference Include="..\SyncBuddyLib\SyncBuddyLib.csproj" />
     </ItemGroup>
 </Project>

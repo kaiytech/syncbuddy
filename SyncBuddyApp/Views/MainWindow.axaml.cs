@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -127,5 +128,11 @@ public partial class MainWindow : Window
     {
         Process.Start(new ProcessStartInfo("explorer.exe", Path.GetFullPath(SyncApp.AppSettingsDir))
             { UseShellExecute = true });
+    }
+
+    private void ExitButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        var lifetime = Application.Current?.ApplicationLifetime as IControlledApplicationLifetime;
+        lifetime?.Shutdown();
     }
 }

@@ -36,39 +36,6 @@ public static class SyncApp
     public static string AppSyncsFile => Path.Combine(AppSettingsDir, "syncs.json");
     public static string AppSettingsFile => Path.Combine(AppSettingsDir, "settings.json");
 
-    private static JsonSerializerSettings SerializerSettings
-    {
-        get
-        {
-            var settings = new JsonSerializerSettings
-            {
-                ContractResolver = new DefaultContractResolver
-                {
-                    DefaultMembersSearchFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
-                    IgnoreSerializableAttribute = true
-                },
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore
-            };
-            settings.ContractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new CamelCaseNamingStrategy(),
-                IgnoreShouldSerializeMembers = true
-            };
-            settings.DefaultValueHandling = DefaultValueHandling.Ignore;
-            settings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore;
-
-            settings.ContractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new CamelCaseNamingStrategy(),
-                IgnoreSerializableInterface = true,
-                IgnoreIsSpecifiedMembers = true,
-                IgnoreShouldSerializeMembers = true
-            };
-            return settings;
-        }
-    }
-
     public static ObservableCollection<SyncItemExtended> Items { get; } = new()
     {
     };

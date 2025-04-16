@@ -1,0 +1,12 @@
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\bin\Debug\net8.0\SyncBuddyLib.deps.json
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\bin\Debug\net8.0\SyncBuddyLib.dll
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\bin\Debug\net8.0\SyncBuddyLib.pdb
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\obj\Debug\net8.0\SyncBuddyLib.csproj.AssemblyReference.cache
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\obj\Debug\net8.0\SyncBuddyLib.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\obj\Debug\net8.0\SyncBuddyLib.AssemblyInfoInputs.cache
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\obj\Debug\net8.0\SyncBuddyLib.AssemblyInfo.cs
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\obj\Debug\net8.0\SyncBuddyLib.csproj.CoreCompileInputs.cache
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\obj\Debug\net8.0\SyncBuddyLib.dll
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\obj\Debug\net8.0\refint\SyncBuddyLib.dll
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\obj\Debug\net8.0\SyncBuddyLib.pdb
+C:\Users\kaite\Documents\GitHub\syncbuddy\SyncBuddyLib\obj\Debug\net8.0\ref\SyncBuddyLib.dll
