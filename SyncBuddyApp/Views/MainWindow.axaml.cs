@@ -12,6 +12,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Material.Icons;
 using SyncBuddy.ViewModels;
+using SyncBuddyApp.Views;
 using SyncBuddyLib;
 
 namespace SyncBuddy.Views;
@@ -91,7 +92,8 @@ public partial class MainWindow : Window
 
     private void WindowBase_OnDeactivated(object? sender, EventArgs e)
     {
-        //Hide();
+        if (EditWindow is null)
+            Hide();
     }
 
     public async Task OpenEditDialog(SyncItemExtended item)
@@ -134,5 +136,10 @@ public partial class MainWindow : Window
     {
         var lifetime = Application.Current?.ApplicationLifetime as IControlledApplicationLifetime;
         lifetime?.Shutdown();
+    }
+
+    private void AboutButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        new AboutWindow().Show();
     }
 }

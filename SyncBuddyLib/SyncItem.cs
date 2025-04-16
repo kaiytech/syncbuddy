@@ -10,6 +10,12 @@ namespace SyncBuddyLib;
 [JsonObject]
 public class SyncItem : IDisposable
 {
+    /// <summary>
+    /// Used to check if two directories are independent (that one doesn't contain the other)
+    /// </summary>
+    /// <param name="sourceDir">one of the directories</param>
+    /// <param name="targetDir">the other directory</param>
+    /// <returns>true, if the directories are independent. False otherwise</returns>
     public static bool AreDirectoriesIndependent(string sourceDir, string targetDir)
     {
         if (string.IsNullOrEmpty(sourceDir) || string.IsNullOrEmpty(targetDir))
@@ -22,17 +28,31 @@ public class SyncItem : IDisposable
                && !full2.StartsWith(full1, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Constructor used by JsonConvert only
+    /// </summary>
     protected SyncItem()
     {
         
     }
     
-    public SyncItem(int id, string sourceDir, string targetDir, DateTime lastChecked, bool enabled, int periodMinutes)
+    /// <summary>
+    /// SyncItem is used to create a synchronization entry
+    /// </summary>
+    /// <param name="id">ID of the entry (this has no effect on functionality)</param>
+    /// <param name="sourceDir">Source directory</param>
+    /// <param name="targetDir">Target directory</param>
+    /// <param name="lastChecked">Time of last check (default = Now)</param>
+    /// <param name="enabled">(used for periodic check) Is the entry active?</param>
+    /// <param name="periodMinutes">(used for periodic check) Check interval in minutes</param>
+    public SyncItem(int id, string sourceDir, string targetDir, DateTime? lastChecked = null, bool enabled = true, int periodMinutes = 2)
     {
         Id = id;
         SourceDir = sourceDir;
         TargetDir = targetDir;
-        LastChecked = lastChecked;
+        if (lastChecked is null)
+            lastChecked = DateTime.Now;
+        LastChecked = (DateTime)lastChecked;
         _enabled = enabled;
         PeriodMinutes = periodMinutes;
         SyncStatus = SyncStatus.Idle;
@@ -40,6 +60,10 @@ public class SyncItem : IDisposable
             OnAnyPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentLog)));
     }
 
+    /// <summary>
+    /// Copy constructor
+    /// </summary>
+    /// <param name="source">source item</param>
     public SyncItem(SyncItem source) : this(source.Id, source.SourceDir, source._targetDir, source.LastChecked, source.Enabled, source.PeriodMinutes)
     {
         LastChecked = source.LastChecked;
@@ -50,11 +74,22 @@ public class SyncItem : IDisposable
             CurrentLog.Add(se);
     }
     
+    /// <summary>
+    /// Event raised whenever one of the following properties change:
+    /// SourceDir, TargetDir, Enabled, PeriodMinutes, SyncStatus
+    /// </summary>
     public event EventHandler<PropertyChangedEventArgs>? OnAnyPropertyChanged;
 
+    /// <summary>
+    /// ID of the entry (this has no effect on functionality)
+    /// </summary>
     [JsonProperty("id")] public int Id { get; }
 
     [JsonProperty("source_dir")] private string _sourceDir = string.Empty;
+    
+    /// <summary>
+    /// Synchronization source directory
+    /// </summary>
     [JsonIgnore]
     public string SourceDir
     {
@@ -69,6 +104,9 @@ public class SyncItem : IDisposable
         }
     }
     
+    /// <summary>
+    /// Synchronization target directory
+    /// </summary>
     [JsonProperty("target_dir")] private string _targetDir = string.Empty;
     [JsonIgnore]
     public string TargetDir
@@ -87,6 +125,9 @@ public class SyncItem : IDisposable
     [JsonProperty("is_enabled")]
     private bool _enabled;
     
+    /// <summary>
+    /// (used for periodic check) Is the entry active?
+    /// </summary>
     [JsonIgnore]
     public virtual bool Enabled
     {
@@ -106,6 +147,9 @@ public class SyncItem : IDisposable
     private DateTime _lastChecked;
     
 
+    /// <summary>
+    /// Time of last synchronization
+    /// </summary>
     [JsonIgnore]
     public DateTime LastChecked
     {
@@ -123,6 +167,9 @@ public class SyncItem : IDisposable
     [JsonProperty("period_minutes")]
     private int _periodMinutes = 2;
 
+    /// <summary>
+    /// (used for periodic check) Synchronization interval
+    /// </summary>
     [JsonIgnore]
     public int PeriodMinutes
     {
@@ -137,12 +184,22 @@ public class SyncItem : IDisposable
         }
     }
 
-    public void SyncNow()
+    /// <summary>
+    /// Schedules a synchronization when a periodic sync is running
+    /// </summary>
+    public void ScheduleSync()
     {
+        if (_cancellationTokenSource is null)
+            return;
         _forceSync = true;
         SyncStatus = SyncStatus.Idle;
     }
     
+    /// <summary>
+    /// Performs a single synchronization.
+    /// Refer to SyncStatus and CurrentLog for outcome of this method
+    /// </summary>
+    /// <exception cref="ArgumentException">Thrown when SourceDir and TargetDir are not independent.</exception>
     public async Task Sync()
     {
         if (!AreDirectoriesIndependent(SourceDir, TargetDir))
@@ -348,8 +405,15 @@ public class SyncItem : IDisposable
         LastChecked = DateTime.Now;
     }
     
+    /// <summary>
+    /// Event raised whenever SyncStatus changes.
+    /// SyncChangedEventArgs contains both previous and current values
+    /// </summary>
     public event EventHandler<SyncChangedEventArgs>? OnSyncStatusChanged;
     
+    /// <summary>
+    /// Current synchronization status
+    /// </summary>
     [JsonIgnore]
     public SyncStatus SyncStatus
     {
@@ -371,6 +435,9 @@ public class SyncItem : IDisposable
     [JsonIgnore]
     private SyncStatus _syncStatus = SyncStatus.Idle;
 
+    /// <summary>
+    /// Log of most recent operation. Can be subscribed to.
+    /// </summary>
     [JsonIgnore]
     public ObservableCollection<string> CurrentLog { get; set; } = new();
 
@@ -378,8 +445,15 @@ public class SyncItem : IDisposable
 
     [JsonIgnore] private bool _forceSync = false;
 
+    /// <summary>
+    /// Master check for enabled state of synchronization (needs to be overwritten)
+    /// </summary>
     [JsonIgnore] protected virtual bool IsMasterEnabled => true;
 
+    /// <summary>
+    /// Start a periodic check for the current synchronization item
+    /// </summary>
+    /// <param name="cts">CancellationTokenSource</param>
     public async Task PeriodicCheck(CancellationTokenSource cts)
     {
         _cancellationTokenSource = cts;

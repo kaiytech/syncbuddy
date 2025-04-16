@@ -1,0 +1,21 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="270" d:DesignHeight="270"
+        Height="270" Width="270"
+        x:Class="SyncBuddyApp.Views.AboutWindow"
+        CanResize="False"
+        Title="About"
+        WindowStartupLocation="CenterScreen">
+    <Grid RowDefinitions="Auto Auto Auto" Margin="16">
+        <Image Width="200" Source="../Assets/icon.ico"></Image>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+            <TextBlock><Run FontWeight="Bold">SyncBuddy</Run> by</TextBlock>
+            <HyperlinkButton Click="Button_OnClick" NavigateUri="google.com"><TextBlock TextDecorations="Underline" Foreground="DodgerBlue">
+                Kajetan Krawczyk
+            </TextBlock></HyperlinkButton>
+        </StackPanel>
+        <TextBlock HorizontalAlignment="Center" Grid.Row="2">Built with ♡ using JetBrains Rider</TextBlock>
+    </Grid>
+</Window>

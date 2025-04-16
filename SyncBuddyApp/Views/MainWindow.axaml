@@ -9,7 +9,7 @@
         Width="600" Height="600"
         x:Class="SyncBuddy.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/icon.ico"
         Title="SyncBuddy"
         TransparencyLevelHint="AcrylicBlur"
         Background="#0BFFFFFF"
@@ -106,13 +106,14 @@
             </ScrollViewer>
         </Border>
         
-        <Grid Grid.Row="2" ColumnDefinitions="* Auto" Margin="30 -10 0 20">
+        <Grid Grid.Row="2" ColumnDefinitions="* *" Margin="30 -10 24 20">
             <Button Name="ActiveButton" Click="ActiveButton_OnClick" Classes="Outline" HorizontalContentAlignment="Left" Padding="0" HorizontalAlignment="Left" Background="Transparent" Foreground="WhiteSmoke" BorderThickness="0" BorderBrush="Transparent">
                 <StackPanel Orientation="Horizontal" Spacing="5">
                     <avalonia:MaterialIcon Name="ActiveIcon" Foreground="GreenYellow" Kind="RadioButtonChecked"></avalonia:MaterialIcon>
                     <TextBlock Name="ActiveText">Active</TextBlock>
                 </StackPanel>
             </Button>
+            <Button Name="AboutButton" Click="AboutButton_OnClick" Classes="Outline" Grid.Column="1" HorizontalAlignment="Right"><avalonia:MaterialIcon Kind="QuestionMark"></avalonia:MaterialIcon></Button>
         </Grid>
     </Grid>
     

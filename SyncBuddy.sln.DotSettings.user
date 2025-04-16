@@ -15,4 +15,5 @@
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::E3CA0224-97AF-43B2-BD7E-630BA2214A9A::net8.0::SyncBuddyLibTests.Tests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
+&lt;/SessionState&gt;</s:String>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=krawczyk/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

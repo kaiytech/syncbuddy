@@ -46,7 +46,7 @@ public class SyncItemExtended : SyncItem, INotifyPropertyChanged
     
     public SyncItemExtended(int id, string sourceDir, string targetDir, DateTime lastChecked, bool enabled, int periodMinutes) : base(id, sourceDir, targetDir, lastChecked, enabled, periodMinutes)
     {
-        Command_SyncNow = new RelayCommand(SyncNow);
+        Command_SyncNow = new RelayCommand(ScheduleSync);
         Command_CopySourceDir = new RelayCommand(() => { CopyToClipboardAndNotify(SourceDir); });
         Command_CopyTargetDir = new RelayCommand(() => { CopyToClipboardAndNotify(TargetDir); });
         Command_OpenSourceDir = new RelayCommand(() =>
