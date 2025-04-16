@@ -145,6 +145,8 @@ public class SyncItem : IDisposable
     
     public async Task Sync()
     {
+        if (!AreDirectoriesIndependent(SourceDir, TargetDir))
+            throw new ArgumentException("Source and target paths need to be independent");
         var errored = false;
         var stopwatch = Stopwatch.StartNew();
         CurrentLog.Clear();
