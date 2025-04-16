@@ -11,7 +11,7 @@
     <Grid RowDefinitions="Auto Auto Auto" Margin="16">
         <Image Width="200" Source="../Assets/icon.ico"></Image>
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-            <TextBlock><Run FontWeight="Bold">SyncBuddy</Run> by</TextBlock>
+            <TextBlock><Run FontWeight="Bold">SyncBuddy 1.0</Run> by</TextBlock>
             <HyperlinkButton Click="Button_OnClick" NavigateUri="google.com"><TextBlock TextDecorations="Underline" Foreground="DodgerBlue">
                 Kajetan Krawczyk
             </TextBlock></HyperlinkButton>
