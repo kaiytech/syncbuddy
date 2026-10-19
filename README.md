@@ -7,6 +7,8 @@
   </p>
 </div>
 
+[![Human-Made](https://img.shields.io/badge/made%20by-a%20human-blue?style=flat-square)](https://github.com/your-username/your-repo)
+
 ## About The Project
 SyncBuddy is a simple app that synchronizes two folders together. SyncBuddyLib is a library that takes care of the whole magic. It's all wrapped in an Avalonia application and an easy to use CLI. Enjoy!
 
